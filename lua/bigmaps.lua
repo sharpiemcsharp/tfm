@@ -7,6 +7,17 @@ string.split = function(s,t)
 	return r
 end
 
+-- table contains value
+table.contains = function(t,value)
+	for _,v in pairs(t) do
+		if v==value then
+			return true
+		end
+	end
+	return false
+end
+
+
 -- string s starts with prefix p ?
 string.startswith = function(s,p)
    return string.sub(s,1,string.len(p))==p
@@ -315,7 +326,7 @@ function eventNewGame()
 
 	local nudge = 0
 	if scale > 1 then
-		nudge = 12
+		nudge = 6
 	end
 
 	if tfm.get.room.currentMap == '@0' then
@@ -333,8 +344,9 @@ function eventNewGame()
 
 			local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" ', map:length()*scale, map:height()*scale, map:wind(), map:gravity()/scale)
 			if map:defilante() then
+				print("defilante")
 				d = map:defilante()
-				xml = xml .. string.format('defilante="%s,%s,%s,%s"', d[1]/scale, d[2]/scale, d[3]/scale, d[4])
+				xml = xml .. string.format('defilante="%s,%s,%s,%s"', (d[1] or 0)/scale, (d[2] or 0)/scale, (d[3] or 0)/scale, d[4] or 0)
 			end
 			xml = xml .. ' /><Z><S>'
 
@@ -354,13 +366,25 @@ function eventNewGame()
 
 			if map:cheese() then
 				for i,cheese in ipairs(map:cheese()) do
-					xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, (cheese.Y-nudge)*scale)
+					if scale > 1 then
+						xml = xml .. string.format('<F X="%d" Y="%d" />', (cheese.X-nudge)*scale, cheese.Y*scale)
+						xml = xml .. string.format('<F X="%d" Y="%d" />', (cheese.X+nudge)*scale, cheese.Y*scale)
+						xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, (cheese.Y-nudge)*scale)
+						xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, (cheese.Y+nudge)*scale)
+					end
+					xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, cheese.Y*scale)
 				end
 			end
 
 			if map:holes() then
 				for i,hole in ipairs(map:holes()) do
-					xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, (hole.Y-nudge)*scale)
+					if scale > 1 then
+						xml = xml .. string.format('<T X="%d" Y="%d" />', (hole.X-nudge)*scale, hole.Y*scale)
+						xml = xml .. string.format('<T X="%d" Y="%d" />', (hole.X+nudge)*scale, hole.Y*scale)
+						xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, (hole.Y-nudge)*scale)
+						xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, (hole.Y+nudge)*scale)
+					end
+					xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, hole.Y*scale)
 				end
 			end
 
@@ -421,14 +445,24 @@ function command_mort(p,a)
 end
 
 function command_admin(p,a)
-        if p:lower() == "sharpiepoops#0020" or p:lower() == "sharpieboob#0000" then
-                cmd = a[2]:lower()
-                if cmd == 'np' then
-                        np = { a[3], 10 }
-                end
-		if cmd == 'scale' then
-			scale = tonumber(a[3])
-		end
+		p = p:lower()
+		local admins = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
+        if table.contains(admins,p) then
+			print("admin command: " .. p)
+			cmd = a[2]:lower()
+			if cmd == 'np' then
+				np = { a[3], 10 }
+			end
+			if cmd == 'scale' then
+				scale = tonumber(a[3])
+			end
+			if cmd == 'tp' then
+				x = tonumber(a[3]) or 0
+				y = tonumber(a[4]) or 0
+				tfm.exec.movePlayer(p,x,y)
+			end
+		else
+			print("admin denied " .. p)
         end
 end
 
