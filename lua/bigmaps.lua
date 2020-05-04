@@ -122,6 +122,9 @@ end
 Map.defilante = function(C)
 	return C.P.defilante
 end
+Map.hideOffscreen = function(C)
+	return C.P.Ca
+end
 
 Map.background = function(C)
 	return C.P.F
@@ -322,31 +325,58 @@ ui   = nil
 next = nil
 scale = 2
 
+function skip()
+	tfm.exec.chatMessage("<VP>Skipping ...")
+	np = { nil, 10 }
+end
+
+-- spray a cheese or hole around to make it bigger
+function spray(tag,x,y)
+	local r = ''
+	if scale > 1 then
+		local nudge = 8
+		-- top row
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x-nudge) * scale, (y-nudge) * scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x+nudge) * scale, (y-nudge) * scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x      ) * scale, (y-nudge)* scale)
+		-- bottom row
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x-nudge) * scale, (y+nudge) * scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x+nudge) * scale, (y+nudge) * scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x      ) * scale, (y+nudge) * scale)
+		-- middle row
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x-nudge) * scale, y * scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x+nudge) * scale, y * scale)
+	end
+	-- original
+	r     = r .. string.format('<%s X="%d" Y="%d" />', tag, x         *scale, y *scale)
+	return r
+end
+
 function eventNewGame()
 
-	local nudge = 0
-	if scale > 1 then
-		nudge = 6
-	end
-
 	if tfm.get.room.currentMap == '@0' then
-		-- Our flipped map
+		-- Scaled map
 		tfm.exec.setUIMapName(ui)
 
 	else
 		-- Real map
+		print("New map: " .. tfm.get.room.currentMap)
 		map = Map.parse()
-		print("map:" .. tfm.get.room.currentMap)
 		if map then
-			print("parse ok")
+			print("Parse ok")
 
 	    	ui = string.format('<J> %s <BL>- @%s',tfm.get.room.xmlMapInfo.author,tfm.get.room.xmlMapInfo.mapCode)
 
 			local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" ', map:length()*scale, map:height()*scale, map:wind(), map:gravity()/scale)
+			if map:hideOffscreen() then
+				xml = xml .. 'Ca="" '
+			end
 			if map:defilante() then
 				print("defilante")
 				d = map:defilante()
-				xml = xml .. string.format('defilante="%s,%s,%s,%s"', (d[1] or 0)/scale, (d[2] or 0)/scale, (d[3] or 0)/scale, d[4] or 0)
+				skip()
+				return
+				--xml = xml .. string.format('defilante="%s,%s,%s,%s"', (d[1] or 0)/scale, (d[2] or 0)/scale, (d[3] or 0)/scale, d[4] or 0)
 			end
 			xml = xml .. ' /><Z><S>'
 
@@ -358,7 +388,14 @@ function eventNewGame()
 				for i,g in ipairs(map:grounds()) do
 					local gc = g.c or 0
 					local gP = string.format("%s,%s,%s,%s,%s,%s,%s,%s", tostring(g.P[1]), tostring(g.P[2]), tostring(g.P[3]), tostring(g.P[4]), tostring(g.P[5]), tostring(g.P[6]), tostring(g.P[7]), tostring(g.P[8]))
-					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" c="%d" P="%s" />', g.T, g.X*scale, g.Y*scale, g.L*scale, g.H*scale, gc, gP)
+					--print(string.format("ground:%02d type:%02d properties:%s",i,g.T,gP))
+					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" c="%d" P="%s"', g.T, g.X*scale, g.Y*scale, g.L*scale, g.H*scale, gc, gP)
+					if g.o then
+						local go = string.format(' o="%s"', g.o)  --"000000" 
+						xml = xml .. go
+						print(go)
+					end
+					xml = xml .. ' />'
 				end
 			end
 
@@ -366,25 +403,13 @@ function eventNewGame()
 
 			if map:cheese() then
 				for i,cheese in ipairs(map:cheese()) do
-					if scale > 1 then
-						xml = xml .. string.format('<F X="%d" Y="%d" />', (cheese.X-nudge)*scale, cheese.Y*scale)
-						xml = xml .. string.format('<F X="%d" Y="%d" />', (cheese.X+nudge)*scale, cheese.Y*scale)
-						xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, (cheese.Y-nudge)*scale)
-						xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, (cheese.Y+nudge)*scale)
-					end
-					xml = xml .. string.format('<F X="%d" Y="%d" />', cheese.X*scale, cheese.Y*scale)
+					xml = xml .. spray('F',cheese.X,cheese.Y)
 				end
 			end
 
 			if map:holes() then
 				for i,hole in ipairs(map:holes()) do
-					if scale > 1 then
-						xml = xml .. string.format('<T X="%d" Y="%d" />', (hole.X-nudge)*scale, hole.Y*scale)
-						xml = xml .. string.format('<T X="%d" Y="%d" />', (hole.X+nudge)*scale, hole.Y*scale)
-						xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, (hole.Y-nudge)*scale)
-						xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, (hole.Y+nudge)*scale)
-					end
-					xml = xml .. string.format('<T X="%d" Y="%d" />', hole.X*scale, hole.Y*scale)
+					xml = xml .. spray('T',hole.X,hole.Y)
 				end
 			end
 
@@ -395,6 +420,13 @@ function eventNewGame()
 			end
 			
 			xml = xml .. '</D>'
+			
+			L = map:joints()
+			if L and #L>0 then
+				print('Joints:' .. #map:joints())
+				skip()
+				return
+			end
 	
 			if map:shamanObjects() then
 				print("shaman objects")
@@ -431,6 +463,13 @@ function eventLoop(t,r)
 	end
 end
 
+
+totalPlayers = 0
+function eventNewPlayer(p)
+	totalPlayers = totalPlayers + 1
+end
+
+
 function eventChatCommand(p,s)
         -- print('player:' .. p .. ': ' .. s)
         local a = string.split(s,' ')
@@ -461,11 +500,20 @@ function command_admin(p,a)
 				y = tonumber(a[4]) or 0
 				tfm.exec.movePlayer(p,x,y)
 			end
+			if cmd == 'cheese' then
+				tfm.exec.giveCheese(p)
+			end
 		else
 			print("admin denied " .. p)
         end
 end
 
+for g in pairs(_G) do
+	if string.startswith(g,"command_") then
+		system.disableChatCommandDisplay(g)
+	end
+end
 
 tfm.exec.disableAutoShaman(true)
 tfm.exec.newGame()
+
