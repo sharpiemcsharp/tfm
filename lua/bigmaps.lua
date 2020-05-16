@@ -365,7 +365,7 @@ function eventNewGame()
 		if map then
 			print("Parse ok")
 
-	    	ui = string.format('<J> %s <BL>- @%s',tfm.get.room.xmlMapInfo.author,tfm.get.room.xmlMapInfo.mapCode)
+		    	ui = string.format('<J> %s <BL>- @%s',tfm.get.room.xmlMapInfo.author,tfm.get.room.xmlMapInfo.mapCode)
 
 			local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" ', map:length()*scale, map:height()*scale, map:wind(), map:gravity()/scale)
 			if map:hideOffscreen() then
@@ -467,6 +467,7 @@ end
 totalPlayers = 0
 function eventNewPlayer(p)
 	totalPlayers = totalPlayers + 1
+	tfm.exec.changePlayerSize(p,scale)
 end
 
 
@@ -484,27 +485,27 @@ function command_mort(p,a)
 end
 
 function command_admin(p,a)
-		p = p:lower()
-		local admins = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
+	p = p:lower()
+	local admins = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
         if table.contains(admins,p) then
-			print("admin command: " .. p)
-			cmd = a[2]:lower()
-			if cmd == 'np' then
-				np = { a[3], 10 }
-			end
-			if cmd == 'scale' then
-				scale = tonumber(a[3])
-			end
-			if cmd == 'tp' then
-				x = tonumber(a[3]) or 0
-				y = tonumber(a[4]) or 0
-				tfm.exec.movePlayer(p,x,y)
-			end
-			if cmd == 'cheese' then
-				tfm.exec.giveCheese(p)
-			end
-		else
-			print("admin denied " .. p)
+		print("admin command: " .. p)
+		cmd = a[2]:lower()
+		if cmd == 'np' then
+			np = { a[3], 10 }
+		end
+		if cmd == 'scale' then
+			scale = tonumber(a[3])
+		end
+		if cmd == 'tp' then
+			x = tonumber(a[3]) or 0
+			y = tonumber(a[4]) or 0
+			tfm.exec.movePlayer(p,x,y)
+		end
+		if cmd == 'cheese' then
+			tfm.exec.giveCheese(p)
+	end
+	else
+		print("admin denied " .. p)
         end
 end
 
@@ -514,6 +515,12 @@ for g in pairs(_G) do
 	end
 end
 
-tfm.exec.disableAutoShaman(true)
+--tfm.exec.disableAutoShaman(true)
+
+for p,_ in pairs(tfm.get.room.playerList) do
+	print("player:" .. p)
+	eventNewPlayer(p)
+end
+
 tfm.exec.newGame()
 
