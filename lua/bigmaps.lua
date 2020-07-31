@@ -20,7 +20,7 @@ end
 
 -- string s starts with prefix p ?
 string.startswith = function(s,p)
-   return string.sub(s,1,string.len(p))==p
+	return string.sub(s,1,string.len(p))==p
 end
 
 -- combine some arrays (not tables!)
@@ -365,7 +365,7 @@ function eventNewGame()
 		if map then
 			print("Parse ok")
 
-		    	ui = string.format('<J> %s <BL>- @%s',tfm.get.room.xmlMapInfo.author,tfm.get.room.xmlMapInfo.mapCode)
+			ui = string.format('<J> %s <BL>- @%s',tfm.get.room.xmlMapInfo.author,tfm.get.room.xmlMapInfo.mapCode)
 
 			local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" ', map:length()*scale, map:height()*scale, map:wind(), map:gravity()/scale)
 			if map:hideOffscreen() then
@@ -472,12 +472,12 @@ end
 
 
 function eventChatCommand(p,s)
-        -- print('player:' .. p .. ': ' .. s)
-        local a = string.split(s,' ')
-        local cmd = 'command_' .. string.lower(a[1])
-        if _G[cmd] then
-                _G[cmd](p,a)
-        end
+	-- print('player:' .. p .. ': ' .. s)
+	local a = string.split(s,' ')
+	local cmd = 'command_' .. string.lower(a[1])
+	if _G[cmd] then
+		_G[cmd](p,a)
+	end
 end
 
 function command_mort(p,a)
@@ -487,11 +487,14 @@ end
 function command_admin(p,a)
 	p = p:lower()
 	local admins = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
-        if table.contains(admins,p) then
+	if table.contains(admins,p) then
 		print("admin command: " .. p)
 		cmd = a[2]:lower()
 		if cmd == 'np' then
-			np = { a[3], 10 }
+			np = { a[3], 2 }
+		end
+		if cmd == 'skip' then
+			np = { nil, 2 }
 		end
 		if cmd == 'scale' then
 			scale = tonumber(a[3])
@@ -503,10 +506,16 @@ function command_admin(p,a)
 		end
 		if cmd == 'cheese' then
 			tfm.exec.giveCheese(p)
-	end
+		end
+		if cmd == 'shaman' then
+			tfm.exec.disableAutoShaman(false)
+		end
+		if cmd == 'noshaman' then
+			tfm.exec.disableAutoShaman(true)
+		end
 	else
 		print("admin denied " .. p)
-        end
+	end
 end
 
 for g in pairs(_G) do
@@ -515,7 +524,6 @@ for g in pairs(_G) do
 	end
 end
 
---tfm.exec.disableAutoShaman(true)
 
 for p,_ in pairs(tfm.get.room.playerList) do
 	print("player:" .. p)
