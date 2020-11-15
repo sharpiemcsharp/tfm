@@ -1,8 +1,6 @@
+-- Cheese and hole swapped
+-- Use in racing/bootcamp, no guarantee maps are playable.
 
--- wtf maps
--- @7329765
--- @6532371
--- @6063528
 
 -- string split
 string.split = function(s,t)
