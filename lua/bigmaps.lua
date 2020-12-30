@@ -324,6 +324,7 @@ map  = nil
 ui   = nil
 next = nil
 scale = 2
+rotation = 7
 
 function skip()
 	tfm.exec.chatMessage("<VP>Skipping ...")
@@ -453,12 +454,19 @@ function eventNewGame()
 end
 
 function eventLoop(t,r)
-	if np then
-		if np[2] == 0 then
-			tfm.exec.newGame(np[1])
-			np = nil
-		else
-			np[2] = np[2] - 1
+	if rotation == nil
+		if np then
+			if np[2] == 0 then
+				tfm.exec.newGame(np[1])
+				np = nil
+			else
+				np[2] = np[2] - 1
+			end
+		end
+	else
+		if r < 3 then
+			print("#" .. rotation)
+			tfm.exec.newGame("#" .. rotation)
 		end
 	end
 end
