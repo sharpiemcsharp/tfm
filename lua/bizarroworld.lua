@@ -462,7 +462,6 @@ end
 totalPlayers = 0
 function eventNewPlayer(p)
 	totalPlayers = totalPlayers + 1
-	tfm.exec.changePlayerSize(p,scale)
 end
 
 
@@ -515,5 +514,6 @@ for p,_ in pairs(tfm.get.room.playerList) do
 	eventNewPlayer(p)
 end
 
+tfm.exec.disableAutoShaman(true)
 tfm.exec.newGame()
 

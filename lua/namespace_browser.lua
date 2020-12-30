@@ -156,21 +156,26 @@
 		c.children = {}
 	end
 
-	gui.list.addItem = function(c,child)
+	gui.list.addItem = function(c, child)
 		-- update the id to reflect it's position in the table
 		child.parent = c
 		child.id = table.getn(c.children) + 1
 		child:setText(child.text)
 		table.insert(c.children, child)
-		c.html = '<ol>'
+		-- TODO: This is slow as n increases
+		c.html = '' --'<ol>'
 		for i,child in ipairs(c.children) do
+			if c.html:len() > 1950 then
+				break
+			end
 			if child.type == "gui.label" then
 				c.html = c.html .. child.html .. '<br>'
 			elseif child.type == "gui.button" then
-				c.html = c.html .. '<li>' .. child.html .. '</li>'
+				c.html = c.html .. child.html .. '<br>'
+				--c.html = c.html .. '<li>' .. child.html-- .. '</li>'
 			end
 		end
-		c.html = c.html .. '</ol>'
+		--c.html = c.html .. '</ol>'
 	end
 
 	gui.newList = function(x,y,w,h)
@@ -228,10 +233,11 @@
 			self:addItem( gui.newButton(0,0,0,0,p)  )
 		end
 	end
-
-	onClick = function(self,id,p,callback)
-		--tfm.exec.chatMessage('list1: onClick: event:' .. callback)
+	
+	onClick = function(self, id, p, callback)
+		tfm.exec.chatMessage('list1: onClick: onClick: callback:' .. callback)
 		text = self.children[tonumber(callback)].text
+		tfm.exec.chatMessage('list1: onClick: onClick:   text length:' .. text:len())
 		full = self.header .. text
 		--tfm.exec.chatMessage('list1: onClick: text='..text .. ' full:' .. full)
 		local _,depth = string.gsub(full, "%.", "")
