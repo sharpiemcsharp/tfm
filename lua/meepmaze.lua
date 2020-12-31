@@ -2,11 +2,12 @@
 -- by Sharpiepoops
 -- Makes use of Alexander Simakov's maze generation that I found years ago, but his site has since gone by the looks of it
 
-MEEP = true
-COLS = 26
-ROWS = 6
-TILE = 60
-
+MEEP   = true
+COLS   = 13
+ROWS   = 6
+TILE   = 60
+ADMINS = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
+BLOBS  = false
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -282,6 +283,17 @@ Y = {}
 
 math.randomseed(os.time())
 
+
+-- table contains value
+table.contains = function(t,value)
+	for _,v in pairs(t) do
+		if v==value then
+			return true
+		end
+	end
+	return false
+end
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Input stuff
 
@@ -364,7 +376,70 @@ Input.down = function(k)
 	return (k and (k==Input.DOWN or k==Input.S))
 end
 
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Commands
+
+Commands = {}
+
+-- string split
+Commands._split = function(s,t)
+	local r = {}
+	for p in string.gmatch(s,"[^"..t.."]+") do
+		table.insert(r,p)
+	end
+	return r
+end
+
+Commands._property = function(player, object, key, command_args, type_conversion_func)
+	if object and object[key] then
+		if #command_args == 2 then
+			-- set
+			if type_conversion_func then
+				object[key] = type_conversion_func(command_args[2])
+			else
+				object[key] = command_args[2]
+			end
+		end
+		-- get
+		tfm.exec.chatMessage(string.format("%s: %s", key, tostring(object[key])))
+	end
+end
+
+Commands.init = function()
+	--disableChatCommandDisplay
+end
+
+Commands.command_cols = function(player, command_args)
+	Commands._property(player, _G, "COLS", command_args, tonumber)
+end
+
+Commands.command_rows = function(player, command_args)
+	Commands._property(player, _G, "ROWS", command_args, tonumber)
+end
+
+Commands.command_tile = function(player, command_args)
+	Commands._property(player, _G, "TILE", command_args, tonumber)
+end
+
+
+function eventChatCommand(player, str)
+	player = player:lower()
+	if table.contains(ADMINS, player) then
+		local command_args = Commands._split(str,' ')
+		local command_func = 'command_' .. string.lower(command_args[1])
+		if Commands[command_func] then
+			Commands[command_func](player, command_args)
+		else
+			tfm.exec.chatMessage("Unknown command", player)
+		end
+	end
+end
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 -- checks if a position isn't out of bounds of the maze.
 function inbounds(x,y)
@@ -400,7 +475,7 @@ function GenerateXML(cols, rows)
 		for ascii_x = 1, ascii_cols, 2 do
 			--print(string.format("[%03d,%03d] [%02d,%02d]", x, y, ascii_x, ascii_y))
 			if (ascii_y % 2) == 1 then
-				if (ascii_x % 4) == 1 then
+				if BLOBS and (ascii_x % 4) == 1 then
 					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" o="606060" P="%s" />', 12, x, y, 10, 10, "0,0,0,0.2,0,0,0,0")
 				end
 				local c = string.byte(maze.ascii_board[ascii_y][ascii_x])
@@ -421,7 +496,7 @@ function GenerateXML(cols, rows)
 	end
 	
 	xml = xml .. '</S><D>'
-	xml = xml .. string.format('<DS X="%d" Y="%d" />',  40,  70)
+	xml = xml .. string.format('<DS X="%d" Y="%d" />', TILE * 0.5, TILE * 0.75)
 	xml = xml .. string.format('<T X="%d" Y="%d" />',  TILE * cols - TILE / 4, TILE * rows + TILE / 4)
 	xml = xml .. string.format('<F X="%d" Y="%d" />',  TILE * cols - TILE / 4, TILE * rows + TILE / 4)
 	xml = xml .. '</D><O></O></Z></C>'
@@ -465,6 +540,8 @@ end
 if tfm then
 	tfm.exec.disableAutoShaman(true)
 	tfm.exec.disableAutoScore(false)
+	tfm.exec.disableMortCommand(false)
+	tfm.exec.disableWatchCommand(false)
 	tfm.exec.newGame()
 else
 	local cols = tonumber(arg[1])
