@@ -454,7 +454,7 @@ function eventNewGame()
 end
 
 function eventLoop(t,r)
-	if rotation == nil
+	if rotation == nil then
 		if np then
 			if np[2] == 0 then
 				tfm.exec.newGame(np[1])
