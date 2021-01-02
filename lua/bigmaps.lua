@@ -328,7 +328,7 @@ rotation = 7
 
 function skip()
 	tfm.exec.chatMessage("<VP>Skipping ...")
-	np = { nil, 10 }
+	np = { nil, 5 }
 end
 
 -- spray a cheese or hole around to make it bigger
@@ -339,7 +339,7 @@ function spray(tag,x,y)
 		-- top row
 		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x-nudge) * scale, (y-nudge) * scale)
 		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x+nudge) * scale, (y-nudge) * scale)
-		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x      ) * scale, (y-nudge)* scale)
+		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x      ) * scale, (y-nudge) * scale)
 		-- bottom row
 		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x-nudge) * scale, (y+nudge) * scale)
 		r = r .. string.format('<%s X="%d" Y="%d" />', tag, (x+nudge) * scale, (y+nudge) * scale)
@@ -403,19 +403,19 @@ function eventNewGame()
 			xml = xml .. '</S><D>'
 
 			if map:cheese() then
-				for i,cheese in ipairs(map:cheese()) do
-					xml = xml .. spray('F',cheese.X,cheese.Y)
+				for _, cheese in ipairs(map:cheese()) do
+					xml = xml .. spray('F', cheese.X, cheese.Y)
 				end
 			end
 
 			if map:holes() then
-				for i,hole in ipairs(map:holes()) do
-					xml = xml .. spray('T',hole.X,hole.Y)
+				for _, hole in ipairs(map:holes()) do
+					xml = xml .. spray('T', hole.X, hole.Y)
 				end
 			end
 
 			if map:miceSpawns() then
-				for i,spawn in ipairs(map:miceSpawns()) do
+				for _, spawn in ipairs(map:miceSpawns()) do
 					xml = xml .. string.format('<DS X="%d" Y="%d" />', spawn.X*scale, spawn.Y*scale)
 				end
 			end
