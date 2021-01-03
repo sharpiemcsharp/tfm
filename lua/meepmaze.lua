@@ -8,6 +8,10 @@ ROWS   = 6
 TILE   = 60
 ADMINS = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
 BLOBS  = false
+COLOR  = "324650"
+SIZE   = 0.7
+TIME   = 60
+SOUL   = 0
 
 -----------------------------------------------------------------------------------------------------------------------
 
@@ -422,6 +426,15 @@ Commands.command_tile = function(player, command_args)
 	Commands._property(player, _G, "TILE", command_args, tonumber)
 end
 
+Commands.command_color = function(player, command_args)
+	Commands._property(player, _G, "COLOR", command_args)
+end
+
+Commands.command_size = function(player, command_args)
+	Commands._property(player, _G, "SIZE", command_args, tonumber)
+end
+
+
 
 function eventChatCommand(player, str)
 	player = player:lower()
@@ -452,20 +465,28 @@ function inbounds(x,y)
 	return true
 end
 
+function GenerateGround(T, X, Y, L, H, P, o)
+	return string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" P="%s" o="%s"/>', T, X, Y, L, H, P, o)
+end
+
 function GenerateXML(cols, rows)
 	local cols = cols or COLS
 	local rows = rows or ROWS
 	maze = Maze:new(cols, rows)
 	local ascii = maze:generate()
 	--print(ascii)
-	
+
 	local map_width  = TILE * (cols + 1)
 	local map_height = TILE * (rows + 1)
-	
+
 	print(string.format("[%04d,%04d]", map_width, map_height))
-	
-	local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" /><Z><S>', map_width, map_height, 0, 0)
-	
+
+	local xml = string.format('<C><P L="%d" H="%d" G="%d,%d" ', map_width, map_height, 0, 0)
+  if SOUL == 1 then
+    xml = xml .. 'A="" '
+  end
+  xml = xml .. '/><Z><S>'
+
 	local y = 28
 	local ascii_cols = cols * 4 + 1
 	local ascii_rows = rows * 2 + 1
@@ -476,25 +497,25 @@ function GenerateXML(cols, rows)
 			--print(string.format("[%03d,%03d] [%02d,%02d]", x, y, ascii_x, ascii_y))
 			if (ascii_y % 2) == 1 then
 				if BLOBS and (ascii_x % 4) == 1 then
-					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" o="606060" P="%s" />', 12, x, y, 10, 10, "0,0,0,0.2,0,0,0,0")
+					xml = xml .. GenerateGround(12, x, y, 10, 10, "0,0,0,0.2,0,0,0,0", COLOR)
 				end
 				local c = string.byte(maze.ascii_board[ascii_y][ascii_x])
 				--print(c)
 				if c == 45 then
-					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" o="404040" P="%s" />', 12, x, y, 50, 10, "0,0,0,0.2,0,0,0,0")
+					xml = xml .. GenerateGround(12, x, y, TILE - 10, 10, "0,0,0,0.2,0,0,0,0", COLOR)
 				end
 			else
 				local c = string.byte(maze.ascii_board[ascii_y][ascii_x])
 				--print(c)
 				if c == 124 then
-					xml = xml .. string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" o="404040" P="%s" />', 12, x, y, 10, 50, "0,0,0,0.2,0,0,0,0")
+					xml = xml .. GenerateGround(12, x, y, 10, TILE - 10, "0,0,0,0.2,0,0,0,0", COLOR)
 				end
 			end
 			x = x + TILE / 2
 		end
 		y = y + TILE / 2
 	end
-	
+
 	xml = xml .. '</S><D>'
 	xml = xml .. string.format('<DS X="%d" Y="%d" />', TILE * 0.5, TILE * 0.75)
 	xml = xml .. string.format('<T X="%d" Y="%d" />',  TILE * cols - TILE / 4, TILE * rows + TILE / 4)
@@ -507,7 +528,6 @@ end
 function eventNewGame()
 
 	if tfm.get.room.currentMap ~= '@0' then
-		print("blah")
 		xml = GenerateXML()
 		tfm.exec.newGame(xml)
 	end
@@ -523,11 +543,13 @@ function eventNewGame()
 		X[p] = 2
 		Y[p] = 10
 		tfm.exec.movePlayer(p, 0, 0, false, 0, 0, true)
-		tfm.exec.changePlayerSize(p, 0.7)
+		tfm.exec.changePlayerSize(p, SIZE)
 		if MEEP then
 			tfm.exec.giveMeep(p)
 		end
 	end
+
+  tfm.exec.setGameTime(TIME)
 end
 
 function eventLoop(t,r)
@@ -542,6 +564,7 @@ if tfm then
 	tfm.exec.disableAutoScore(false)
 	tfm.exec.disableMortCommand(false)
 	tfm.exec.disableWatchCommand(false)
+	tfm.exec.disableDebugCommand(true)
 	tfm.exec.newGame()
 else
 	local cols = tonumber(arg[1])
