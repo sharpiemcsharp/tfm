@@ -90,7 +90,7 @@ end
 
 -- Draw +---+---+ ... +---+
 function Maze:_draw_horizontal_bar()
-    local line = ''
+    local line = ""
 
     for x = 1, self.width do
         line = line .. '+---'
@@ -102,7 +102,7 @@ end
 
 -- Draw |   |   | ... |   |
 function Maze:_draw_vertical_bars()
-    local line = ''
+    local line = ""
 
     for x = 1, self.width do
         line = line .. '|   '
@@ -230,7 +230,7 @@ function Maze:_render()
         end
     end
 
-    local result = ''
+    local result = ""
     for index, chars in ipairs(self.ascii_board) do
         result = result .. self:_array_to_string(chars)
     end
@@ -277,7 +277,7 @@ function Maze:_string_to_array(str)
 end
 
 function Maze:_array_to_string(array)
-    return table.concat(array, '') .. "\n"
+    return table.concat(array, "") .. "\n"
 end
 
 
