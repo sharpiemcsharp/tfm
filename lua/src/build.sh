@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if ! command -v gcc
+if ! command -v gcc > /dev/null
 then
 	echo "$0: no gcc"
 	exit 1
@@ -63,9 +63,11 @@ echo "Writing to $out ..."
 ) > "$out"
 
 
-clip="/mnt/c/Windows/System32/clip.exe"
-if command -v "$clip"
-then
-	echo "Copying to clipboard (clip.exe) ..."
-	cat "$out" | $clip
-fi
+for copycommand in "/mnt/c/Windows/System32/clip.exe" "pbcopy"
+do
+	if command -v "$copycommand" > /dev/null
+	then
+		echo "Copying to clipboard ($copycommand) ..."
+		cat "$out" | $copycommand
+	fi
+done
