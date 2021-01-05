@@ -1,6 +1,6 @@
 #pragma once
 
-function DEBUG(msg)
-	print('DEBUG:' .. msg)
+function DEBUG(fmt, ...)
+	print("DEBUG: " .. string.format(fmt, ...))
 end
 

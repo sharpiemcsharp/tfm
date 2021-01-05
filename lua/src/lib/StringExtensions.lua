@@ -1,15 +1,24 @@
 #pragma once
 
--- string split
-string.split = function(s,t)
+-- split
+function string:split(sep)
 	local r = {}
-	for p in string.gmatch(s,"[^"..t.."]+") do
-		table.insert(r,p)
+	for p in string.gmatch(self, "[^" .. sep .. "]+") do
+		table.insert(r, p)
 	end
 	return r
 end
 
--- string s starts with prefix p ?
-string.startswith = function(s,p)
-	return string.sub(s,1,string.len(p))==p
+-- does s start with prefix p ?
+function string:startswith(prefix)
+	return string.sub(self, 1, string.len(prefix)) == prefix
+end
+
+-- are strings equal?
+function string.equal(s1, s2, case_insensitive)
+	if case_insensitive then
+		return s1:lower() == s2:lower()
+	else
+		return s1 == s2
+	end
 end
