@@ -2,18 +2,18 @@
 ------------------------------------------
 -- GENERATED FILE, DO NOT EDIT DIRECTLY --
 ------------------------------------------
+ADMINS = { "Sharpiepoops#0020" }
 MEEP = true
 COLS = 13
 ROWS = 6
 TILE = 60
-ADMINS = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
 BLOBS = false
 COLOR = "324650"
 SIZE = 0.7
 TIME = 60
 SOUL = 0
-function DEBUG(msg)
-print('DEBUG:' .. msg)
+function DEBUG(fmt, ...)
+print("DEBUG: " .. string.format(fmt, ...))
 end
 Input = {}
 Input.SPACE = 32
@@ -81,38 +81,67 @@ return (k and (k==Input.DOWN or k==Input.S))
 end
 Admin = {}
 Admin.List = {}
-Admin.Add = function(obj, level)
+Admin._add = function(p, level)
+p = p:lower()
+Admin.List[p] = level
+end
+Admin.add = function(obj, level)
 if level == nil then
 level = 0
 end
-if type(obj) == string then
-Admin.List[obj] = level
+if type(obj) == "string" then
+Admin._add(obj, level)
 else
-for _, playerName in ipairs(obj) do
-Admin.List[playerName] = level
+for _, p in ipairs(obj) do
+Admin._add(p, level)
 end
-Admin.IsAdmin = function(playerName)
-if Admin.List[playerName] then
+end
+end
+Admin.isAdmin = function(p)
+if Admin.List[p] then
 return true
-end
+else
 return false
 end
-Admin.GetLevel = function(playerName)
-return Admin.List[playerName]
 end
-string.split = function(s,t)
+Admin.getLevel = function(p)
+return Admin.List[p]
+end
+Admin.Commands = {}
+Admin.Commands._auth = Admin.isAdmin
+Admin.Commands.admins = function(p, a)
+tfm.exec.chatMessage("<font color='#AAAAAA'>admins: " .. table.concat(table.keys(Admin.List, true), ", "), p)
+end
+Admin.Commands.admin = function(p, a)
+if #a >= 2 then
+if Admin.isAdmin(a[2]) then
+tfm.exec.chatMessage(string.format("<R>admin: %s is already an admin", a[2]), p)
+else
+Admin.add(a[2])
+tfm.exec.chatMessage(string.format("<VP>admin: %s is now an admin", a[2]), p)
+end
+end
+end
+function string:split(sep)
 local r = {}
-for p in string.gmatch(s,"[^"..t.."]+") do
-table.insert(r,p)
+for p in string.gmatch(self, "[^" .. sep .. "]+") do
+table.insert(r, p)
 end
 return r
 end
-string.startswith = function(s,p)
-return string.sub(s,1,string.len(p))==p
+function string:startswith(prefix)
+return string.sub(self, 1, string.len(prefix)) == prefix
 end
-table.contains = function(t, value)
-for _,v in pairs(t) do
-if v==value then
+function string.equal(s1, s2, case_insensitive)
+if case_insensitive then
+return s1:lower() == s2:lower()
+else
+return s1 == s2
+end
+end
+table.contains = function(t, value, case_insensitive)
+for _, v in pairs(t) do
+if string.equal(v, value, case_insensitive) then
 return true
 end
 end
@@ -120,12 +149,32 @@ return false
 end
 table.combine = function(...)
 local r = {}
-for _,a in pairs(arg) do
+for _, a in pairs(arg) do
 if a and type(a)=='table' then
 for _,e in pairs(a) do
 table.insert(r,e)
 end
 end
+end
+return r
+end
+table.keys = function(t, sort)
+r = {}
+for k, _ in pairs(t) do
+table.insert(r, k)
+end
+if sort then
+table.sort(r)
+end
+return r
+end
+table.values = function(t, sort)
+r = {}
+for _, v in pairs(t) do
+table.insert(r, v)
+end
+if sort then
+table.sort(r)
 end
 return r
 end
@@ -139,14 +188,17 @@ system.disableChatCommandDisplay(key)
 end
 end
 end
-Commands.property = function(object, key, type_conversion_func)
+Commands.property = function(object, key, type_conversion_func, readonly)
 local function f(p, a)
 if object and object[key] then
 if #a >= 2 then
+if readonly then
+else
 if type_conversion_func then
 object[key] = type_conversion_func(a[2])
 else
 object[key] = a[2]
+end
 end
 end
 tfm.exec.chatMessage(string.format("%s: %s", key, tostring(object[key])), p)
@@ -363,14 +415,16 @@ PATH = 1
 X = {}
 Y = {}
 math.randomseed(os.time())
-Admins.Add(ADMINS)
+Admin.add(ADMINS)
+Commands.add(Admin.Commands)
 adminCommands = {}
+adminCommands._auth = Admin.isAdmin
 adminCommands.cols = Commands.property(_G, "COLS" , tonumber)
 adminCommands.rows = Commands.property(_G, "ROWS" , tonumber)
 adminCommands.tile = Commands.property(_G, "TILE" , tonumber)
 adminCommands.color = Commands.property(_G, "COLOR")
 adminCommands.size = Commands.property(_G, "SIZE" , tonumber)
-Commands.add(adminCommands, Admin.isAdmin)
+Commands.add(adminCommands)
 function GenerateGround(T, X, Y, L, H, P, o)
 return string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" P="%s" o="%s"/>', T, X, Y, L, H, P, o)
 end
@@ -442,6 +496,7 @@ tfm.exec.setGameTime(TIME)
 end
 function eventLoop(t,r)
 end
+eventChatCommand = Commands.eventChatCommand
 if tfm then
 tfm.exec.disableAutoShaman(true)
 tfm.exec.disableAutoScore(false)

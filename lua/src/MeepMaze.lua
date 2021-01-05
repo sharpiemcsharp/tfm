@@ -1,12 +1,12 @@
--- Lol Maze
+-- Meep Maze
 -- by Sharpiepoops
--- Makes use of Alexander Simakov's maze generation that I found years ago, but his site has since gone by the looks of it
+-- Makes use of Alexander Simakovs maze generation that I found years ago, but his site has since gone by the looks of it
 
+ADMINS = { "Sharpiepoops#0020" }
 MEEP   = true
 COLS   = 13
 ROWS   = 6
 TILE   = 60
-ADMINS = { "sharpiepoops#0020", "+sharpiepoops#0000", "sharpieboob#0000" }
 BLOBS  = false
 COLOR  = "324650"
 SIZE   = 0.7
@@ -293,16 +293,20 @@ Y = {}
 math.randomseed(os.time())
 
 -- Admins
-Admins.Add(ADMINS)
+Admin.add(ADMINS)
 
--- Commands
+-- Add default admin command set
+Commands.add(Admin.Commands)
+
+-- Meep maze admin commands
 adminCommands = {}
+adminCommands._auth = Admin.isAdmin
 adminCommands.cols  = Commands.property(_G, "COLS" , tonumber)
 adminCommands.rows  = Commands.property(_G, "ROWS" , tonumber)
 adminCommands.tile  = Commands.property(_G, "TILE" , tonumber)
 adminCommands.color = Commands.property(_G, "COLOR")
 adminCommands.size  = Commands.property(_G, "SIZE" , tonumber)
-Commands.add(adminCommands, Admin.isAdmin)
+Commands.add(adminCommands)
 
 
 function GenerateGround(T, X, Y, L, H, P, o)
@@ -398,6 +402,8 @@ function eventLoop(t,r)
 	--	tfm.exec.newGame(xml)
 	--end
 end
+
+eventChatCommand = Commands.eventChatCommand
 
 if tfm then
 	tfm.exec.disableAutoShaman(true)
