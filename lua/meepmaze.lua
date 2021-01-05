@@ -110,7 +110,7 @@ end
 string.startswith = function(s,p)
 return string.sub(s,1,string.len(p))==p
 end
-table.contains = function(t,value)
+table.contains = function(t, value)
 for _,v in pairs(t) do
 if v==value then
 return true
@@ -131,9 +131,8 @@ return r
 end
 Commands = {}
 Commands._bags = {}
-Commands.add = function(bag, auth_func)
-bag._auth = auth_func
-table.insert(Commands._bags, bags)
+Commands.add = function(bag)
+table.insert(Commands._bags, bag)
 for key, _ in pairs(bag) do
 if not string.startswith(key, '_') then
 system.disableChatCommandDisplay(key)
@@ -141,41 +140,43 @@ end
 end
 end
 Commands.property = function(object, key, type_conversion_func)
-local function f(playerName, message)
+local function f(p, a)
 if object and object[key] then
-if #command_args == 2 then
+if #a >= 2 then
 if type_conversion_func then
-object[key] = type_conversion_func(command_args[2])
+object[key] = type_conversion_func(a[2])
 else
-object[key] = command_args[2]
+object[key] = a[2]
 end
 end
-tfm.exec.chatMessage(string.format("%s: %s", key, tostring(object[key])), playerName)
+tfm.exec.chatMessage(string.format("%s: %s", key, tostring(object[key])), p)
 end
 end
 return f
 end
 Commands.eventChatCommand = function(playerName, message)
 playerName = playerName:lower()
+if string.startswith(message, '_') then
+return false
+end
 local args = string.split(message, ' ')
 local key = args[1]:lower()
-local r = 1
-if not string.startswith(key, '_') then
-for _, bag in ipairs(Commands._bags) do
+if #Commands._bags == 0 then
+return false
+end
+for i, bag in ipairs(Commands._bags) do
 if bag[key] then
 local auth_result = false
 if not bag['_auth'] then
 auth_result = true
 elseif bag._auth(playerName) then
 auth_result = true
-else
 end
 if auth_result then
 bag[key](playerName, args)
 return true
 end
 else
-end
 end
 end
 return false
