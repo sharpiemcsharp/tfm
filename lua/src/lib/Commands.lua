@@ -7,6 +7,12 @@
 -- Create global
 Commands = {}
 
+-- Register with Events
+if Events then
+	Events.addHandler(Commands)
+end
+
+
 -- Create our collection of command bags
 -- A command bag is a table<string, function>
 Commands._bags = {}

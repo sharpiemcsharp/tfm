@@ -62,3 +62,18 @@ Admin.Commands.admin = function(p, a)
 		end
 	end
 end
+
+Admin.Commands.meep = function(p, a)
+	tfm.exec.giveMeep(a[2] or p)
+end
+
+
+
+--Admin.Commands.time = function(p, a)
+--	if #a >= 2 then
+--		local t = tonumber(a[2])
+--		if t then
+--			tfm.exec.setGameTime(t)
+--		end
+--	end
+--end
