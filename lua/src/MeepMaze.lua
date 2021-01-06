@@ -14,6 +14,7 @@ TIME   = 60
 SOUL   = 0
 
 
+#include "lib/Events.lua"
 #include "lib/Input.lua"
 #include "lib/Admin.lua"
 #include "lib/Commands.lua"
@@ -234,7 +235,7 @@ function Maze:_render()
     for index, chars in ipairs(self.ascii_board) do
         result = result .. self:_array_to_string(chars)
     end
-
+ 
     return result
 end
 
@@ -403,7 +404,9 @@ function eventLoop(t,r)
 	--end
 end
 
-eventChatCommand = Commands.eventChatCommand
+
+Events.init()
+
 
 if tfm then
 	tfm.exec.disableAutoShaman(true)
