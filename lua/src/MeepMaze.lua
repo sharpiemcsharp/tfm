@@ -414,6 +414,7 @@ if tfm then
 	tfm.exec.disableMortCommand(false)
 	tfm.exec.disableWatchCommand(false)
 	tfm.exec.disableDebugCommand(true)
+	tfm.exec.disablePhysicalConsumables(true)
 	tfm.exec.newGame()
 else
 	local cols = tonumber(arg[1])
