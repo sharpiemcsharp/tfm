@@ -4,6 +4,7 @@ Radius = 10
 Roof   = 1
 
 #include "lib/Debug.lua"
+#include "lib/Events.lua"
 #include "lib/Commands.lua"
 #include "lib/Admin.lua"
 
@@ -25,9 +26,6 @@ AdminCommands.roof  = Commands.property(_G, "Roof",  tonumber)
 Commands.add(AdminCommands)
 Commands.add(Admin.Commands)
 
-eventChatCommand = Commands.eventChatCommand
-
-
 function eventLoop(t,r)
 
 	if t < 3000 then
@@ -36,10 +34,10 @@ function eventLoop(t,r)
 
 	local ad = Tick * DegreesPerTick
 	local ar = math.rad(ad)
-	local x = Radius * math.sin(ar)
-	local y = Radius * math.cos(ar)
+	local x  = Radius * math.sin(ar)
+	local y  = Radius * math.cos(ar)
 
-	DEBUG("tick:%04d angle:%02d [%.2f,%.2f]", t, ad, x, y)
+	DEBUG("tick:%04d [%.2f,%.2f]", t, x, y)
 
 	tfm.exec.setWorldGravity(x, y)
 	tfm.exec.addShamanObject(0, 400 + x * 10, 220 + y * 10, (180 - ad) - 180, 0, 0, false)
@@ -75,7 +73,20 @@ function eventNewGame()
 		TickDelta = 1
 	end
 
+	sin = {}
+	cos = {}
+
+	for tick = 0, DegreesPerTick, 1 do
+		local ad = tick * DegreesPerTick
+		local ar = math.rad(ad)
+		sin[ad] = Radius * math.sin(ar)
+		cos[ad] = Radius * math.cos(ar)
+	end
+
 end
 
+Events.init()
 
+tfm.exec.disableAutoShaman(true)
 tfm.exec.newGame()
+
