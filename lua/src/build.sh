@@ -47,7 +47,7 @@ echo "Writing to $out ..."
 #	| ( $debug || sed 's/^#/--/g'             ) \
 
 	cat "$in" \
-	| gcc -E - \
+	| gcc -E - $DDEBUG \
 	| grep -v '^#' \
 	| if $debug
 	then
