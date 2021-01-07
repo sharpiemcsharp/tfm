@@ -12,6 +12,7 @@ COLOR  = "324650"
 SIZE   = 0.7
 TIME   = 60
 SOUL   = 0
+ACID   = 0
 
 
 #include "lib/Events.lua"
@@ -307,10 +308,16 @@ adminCommands.rows  = Commands.property(_G, "ROWS" , tonumber)
 adminCommands.tile  = Commands.property(_G, "TILE" , tonumber)
 adminCommands.color = Commands.property(_G, "COLOR")
 adminCommands.size  = Commands.property(_G, "SIZE" , tonumber)
+adminCommands.acid  = Commands.property(_G, "ACID" , tonumber)
 Commands.add(adminCommands)
 
 
 function GenerateGround(T, X, Y, L, H, P, o)
+	if ACID > 0 and X > 2 * TILE and Y > 2 * TILE then
+		if math.random() * 10 < ACID then
+			T = 19
+		end
+	end
 	return string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" P="%s" o="%s"/>', T, X, Y, L, H, P, o)
 end
 
