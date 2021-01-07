@@ -12,8 +12,71 @@ COLOR = "324650"
 SIZE = 0.7
 TIME = 60
 SOUL = 0
+ACID = 0
 function DEBUG(fmt, ...)
 print("DEBUG: " .. string.format(fmt, ...))
+end
+Events = {}
+Events.Names = {
+"ChatCommand",
+"EmotePlayed",
+"FileLoaded",
+"FileSaved",
+"Keyboard",
+"Loop",
+"Mouse",
+"NewGame",
+"NewPlayer",
+"PlayerDataLoaded",
+"PlayerDied",
+"PlayerGetCheese",
+"PlayerLeft",
+"playerMeep",
+"PlayerRespawn",
+"PlayerVampire",
+"PlayerWon",
+"PopupAnswer",
+"SummoningCancel",
+"SummoningEnd",
+"SummoningStart",
+"TextAreaCallback"
+}
+Events.CONTINUE = 0
+Events.STOP = 1
+Events.Handlers = {}
+Events.addHandler = function(handler)
+table.insert(Events.Handlers, handler)
+end
+Events.pipeline = function(event)
+local function f(...)
+for _, handler in ipairs(Events.Handlers) do
+if handler[event] then
+local r = handler[event](...)
+if not r then
+r = 0
+end
+if r == Events.STOP then
+return
+end
+end
+end
+end
+return f
+end
+Events.init = function()
+for i, _ in ipairs(Events.Names) do
+Events.Names[i] = "event" .. Events.Names[i]
+end
+for _, event in ipairs(Events.Names) do
+if not _G[event] then
+for _, handler in ipairs(Events.Handlers) do
+if handler[event] then
+_G[event] = Events.pipeline(event)
+break
+end
+end
+end
+end
 end
 Input = {}
 Input.SPACE = 32
@@ -122,6 +185,9 @@ tfm.exec.chatMessage(string.format("<VP>admin: %s is now an admin", a[2]), p)
 end
 end
 end
+Admin.Commands.meep = function(p, a)
+tfm.exec.giveMeep(a[2] or p)
+end
 function string:split(sep)
 local r = {}
 for p in string.gmatch(self, "[^" .. sep .. "]+") do
@@ -179,6 +245,9 @@ end
 return r
 end
 Commands = {}
+if Events then
+Events.addHandler(Commands)
+end
 Commands._bags = {}
 Commands.add = function(bag)
 table.insert(Commands._bags, bag)
@@ -424,8 +493,14 @@ adminCommands.rows = Commands.property(_G, "ROWS" , tonumber)
 adminCommands.tile = Commands.property(_G, "TILE" , tonumber)
 adminCommands.color = Commands.property(_G, "COLOR")
 adminCommands.size = Commands.property(_G, "SIZE" , tonumber)
+adminCommands.acid = Commands.property(_G, "ACID" , tonumber)
 Commands.add(adminCommands)
 function GenerateGround(T, X, Y, L, H, P, o)
+if ACID > 0 and X > 2 * TILE and Y > 2 * TILE then
+if math.random() * 10 < ACID then
+T = 19
+end
+end
 return string.format('<S T="%d" X="%d" Y="%d" L="%d" H="%d" P="%s" o="%s"/>', T, X, Y, L, H, P, o)
 end
 function GenerateXML(cols, rows)
@@ -496,13 +571,14 @@ tfm.exec.setGameTime(TIME)
 end
 function eventLoop(t,r)
 end
-eventChatCommand = Commands.eventChatCommand
+Events.init()
 if tfm then
 tfm.exec.disableAutoShaman(true)
 tfm.exec.disableAutoScore(false)
 tfm.exec.disableMortCommand(false)
 tfm.exec.disableWatchCommand(false)
 tfm.exec.disableDebugCommand(true)
+tfm.exec.disablePhysicalConsumables(true)
 tfm.exec.newGame()
 else
 local cols = tonumber(arg[1])
